@@ -1,0 +1,6 @@
+__pychache__
+.venv
+.vscode
+.DS_Store
+
+db/secrets.json
