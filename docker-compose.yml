@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  fastapi:
+    image: mone-server
+    command: uvicorn --proxy-headers src.main:app --host 0.0.0.0 --port 8080 --reload
+    ports:
+      - 8080:8080
+    volumes:
+      - ./src:/code/src
+

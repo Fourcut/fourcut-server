@@ -3,4 +3,5 @@ __pychache__
 .vscode
 .DS_Store
 
-db/secrets.json
+.env
+__pycache__/

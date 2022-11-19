@@ -1,0 +1,21 @@
+version: "3.7"
+
+services:
+  fastapi:
+    image: mone-server
+    command : gunicorn src.main:app --config gunicorn.conf.py
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/code/src
+    expose:
+    - 8000
+  nginx:
+    image: nginx:1.15
+    container_name: nginx
+    ports:
+      - 80:80
+    volumes:
+      - ./default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - fastapi # fastapi 서비스 이후에 실행
