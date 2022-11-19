@@ -20,18 +20,15 @@ def get_studios_by_query(
     search,
     favorite,
 ):
-    print(company)
-    result = (
-        db.query(studioModel.Studio)
-        .filter(
+    result = db.query(studioModel.Studio)
+    if latitude_start and latitude_end and longitude_start and longitude_end:
+        result = result.filter(
             latitude_start <= cast(studioModel.Studio.latitude, Float()),
             cast(studioModel.Studio.latitude, Float()) <= latitude_end,
-        )
-        .filter(
+        ).filter(
             longitude_start <= cast(studioModel.Studio.longitude, Float()),
             cast(studioModel.Studio.longitude, Float()) <= longitude_end,
         )
-    )
 
     if company:
         result = result.filter(studioModel.Studio.company == company)
@@ -41,6 +38,7 @@ def get_studios_by_query(
             or_(
                 studioModel.Studio.company.like(convert_keyword),
                 studioModel.Studio.name.like(convert_keyword),
+                studioModel.Studio.address.like(convert_keyword),
             )
         )
     if favorite:

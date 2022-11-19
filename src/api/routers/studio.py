@@ -17,10 +17,10 @@ def read_studio_by_id(studio_id: int, db: Session = Depends(get_db)):
 
 @router.get("/", response_model=List[studioSchema.StudioBase])
 def read_studio_by_query(
-    latitude_start: float,
-    latitude_end: float,
-    longitude_start: float,
-    longitude_end: float,
+    latitude_start: float | None = Query(default=None),
+    latitude_end: float | None = Query(default=None),
+    longitude_start: float | None = Query(default=None),
+    longitude_end: float | None = Query(default=None),
     company: str | None = Query(default=None),
     search: str | None = Query(default=None),
     favorite: bool | None = Query(default=None),
