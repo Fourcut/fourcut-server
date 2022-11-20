@@ -1,13 +1,11 @@
 from sqlalchemy import Float, cast, or_
 from sqlalchemy.orm import Session
 
-from ..models import studioModel
+from ..models import models
 
 
 def get_studio_by_id(db: Session, studio_id: int):
-    return (
-        db.query(studioModel.Studio).filter(studioModel.Studio.id == studio_id).first()
-    )
+    return db.query(models.Studio).filter(models.Studio.id == studio_id).first()
 
 
 def get_studios_by_query(
@@ -20,25 +18,25 @@ def get_studios_by_query(
     search,
     favorite,
 ):
-    result = db.query(studioModel.Studio)
+    result = db.query(models.Studio)
     if latitude_start and latitude_end and longitude_start and longitude_end:
         result = result.filter(
-            latitude_start <= cast(studioModel.Studio.latitude, Float()),
-            cast(studioModel.Studio.latitude, Float()) <= latitude_end,
+            latitude_start <= cast(models.Studio.latitude, Float()),
+            cast(models.Studio.latitude, Float()) <= latitude_end,
         ).filter(
-            longitude_start <= cast(studioModel.Studio.longitude, Float()),
-            cast(studioModel.Studio.longitude, Float()) <= longitude_end,
+            longitude_start <= cast(models.Studio.longitude, Float()),
+            cast(models.Studio.longitude, Float()) <= longitude_end,
         )
 
     if company:
-        result = result.filter(studioModel.Studio.company == company)
+        result = result.filter(models.Studio.company == company)
     if search:
         convert_keyword = "%{}%".format(search)
         result = result.filter(
             or_(
-                studioModel.Studio.company.like(convert_keyword),
-                studioModel.Studio.name.like(convert_keyword),
-                studioModel.Studio.address.like(convert_keyword),
+                models.Studio.company.like(convert_keyword),
+                models.Studio.name.like(convert_keyword),
+                models.Studio.address.like(convert_keyword),
             )
         )
     if favorite:

@@ -2,10 +2,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.api import api_router
-from .db import database
-from .models import studioModel
+from .db.database import Base, engine
 
-studioModel.Base.metadata.create_all(database.engine)
+Base.metadata.create_all(engine)
+
 
 app = FastAPI()  # instance
 
