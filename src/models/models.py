@@ -15,8 +15,14 @@ class Studio(Base):
     longitude = Column(String(20))  # 경도
     is_opened = Column(Boolean, default=True)
 
-    favorites = relationship("Favorite")
-    histories = relationship("History")
+    favorites = relationship(
+        "Favorite",
+        back_populates="studio",
+    )
+    histories = relationship(
+        "History",
+        back_populates="studio",
+    )
 
 
 class User(Base):
@@ -27,8 +33,14 @@ class User(Base):
     avatar = Column(String(500))
     is_member = Column(Boolean, default=True)
 
-    favorites = relationship("Favorite")
-    user_histories = relationship("UserHistory")
+    favorites = relationship("Favorite", back_populates="user")
+    user_histories = relationship("UserHistory", back_populates="user")
+
+    def __init__(self, email, name, avatar, is_member):
+        self.email = email
+        self.name = name
+        self.avatar = avatar
+        self.is_member = is_member
 
 
 class Favorite(Base):
@@ -37,6 +49,19 @@ class Favorite(Base):
     studio_id = Column(Integer, ForeignKey("studio.id"))
     user_id = Column(Integer, ForeignKey("user.id"))
 
+    studio = relationship(
+        "Studio",
+        back_populates="favorites",
+    )
+    user = relationship(
+        "User",
+        back_populates="favorites",
+    )
+
+    def __init__(self, studio_id, user_id):
+        self.studio_id = studio_id
+        self.user_id = user_id
+
 
 class History(Base):
     __tablename__ = "history"
@@ -44,8 +69,22 @@ class History(Base):
     title = Column(String(50))  # 추가
     studio_id = Column(Integer, ForeignKey("studio.id"))
 
-    user_histories = relationship("UserHistory")
-    files = relationship("File")
+    studio = relationship(
+        "Studio",
+        back_populates="histories",
+    )
+    user_histories = relationship(
+        "UserHistory",
+        back_populates="history",
+    )
+    files = relationship(
+        "File",
+        back_populates="history",
+    )
+
+    def __init__(self, title, studio_id):
+        self.title = title
+        self.studio_id = studio_id
 
 
 class UserHistory(Base):
@@ -54,9 +93,31 @@ class UserHistory(Base):
     user_id = Column(Integer, ForeignKey("user.id"))
     history_id = Column(Integer, ForeignKey("history.id"))
 
+    history = relationship(
+        "History",
+        back_populates="user_histories",
+    )
+    user = relationship(
+        "User",
+        back_populates="user_histories",
+    )
+
+    def __init__(self, user_id, history_id):
+        self.user_id = user_id
+        self.history_id = history_id
+
 
 class File(Base):
     __tablename__ = "file"
     id = Column(Integer, primary_key=True, index=True)
     history_id = Column(Integer, ForeignKey("history.id"))
     url = Column(String(500))
+
+    history = relationship(
+        "History",
+        back_populates="files",
+    )
+
+    def __init__(self, history_id, url):
+        self.history_id = history_id
+        self.url = url

@@ -26,10 +26,3 @@ app.add_middleware(
 @app.get("/")
 def root():
     return {"msg": "hello world!"}
-
-
-# @app.get("/studio/{studio_id}")
-# def read_studio_by_id(studio_id: int, db: Session = Depends(get_db)):
-#     db_studio = crud.get_studio_by_id(db, studio_id=studio_id)
-#     print(db_studio)
-#     return db_studio
