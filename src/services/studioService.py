@@ -4,11 +4,11 @@ from sqlalchemy.orm import Session
 from ..models import models
 
 
-def get_studio_by_id(db: Session, studio_id: int):
+def read_studio_by_id(db: Session, studio_id: int):
     return db.query(models.Studio).filter(models.Studio.id == studio_id).first()
 
 
-def get_studios_by_query(
+def read_studios_by_query(
     db: Session,
     latitude_start,
     latitude_end,

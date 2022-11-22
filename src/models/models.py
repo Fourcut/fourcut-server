@@ -28,6 +28,7 @@ class Studio(Base):
 class User(Base):
     __tablename__ = "user"
     id = Column(Integer, primary_key=True, index=True)
+    client_id = Column(String(50), unique=True)
     email = Column(String(50))
     name = Column(String(20))
     avatar = Column(String(500))
@@ -36,7 +37,8 @@ class User(Base):
     favorites = relationship("Favorite", back_populates="user")
     user_histories = relationship("UserHistory", back_populates="user")
 
-    def __init__(self, email, name, avatar, is_member):
+    def __init__(self, client_id, email, name, avatar, is_member):
+        self.client_id = client_id
         self.email = email
         self.name = name
         self.avatar = avatar
