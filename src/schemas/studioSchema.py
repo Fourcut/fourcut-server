@@ -4,17 +4,9 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class CompanyName(str, Enum):
-    인생네컷 = "인생네컷"
-    포토그레이 = "포토그레이"
-    포토시그니처 = "포토시그니처"
-    포토이즘 = "포토이즘"
-    하루필름 = "하루필름"
-
-
 class StudioBase(BaseModel):
     id: int
-    company: CompanyName
+    company: str | None
     name: str
     address: str | None
     contact: str | None
