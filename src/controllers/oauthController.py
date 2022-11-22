@@ -1,3 +1,4 @@
+import logging
 import os
 from datetime import datetime, timedelta
 
@@ -26,25 +27,27 @@ def create_access_token(db: Session, userdata: dict):
     db_user = userService.read_user_by_clientid(db, client_id)
     kakao_account = userdata["kakao_account"]
 
+    print(kakao_account)
+
     # db 에 없으면 유저 생성 후 userid 얻어옴
     if db_user is None:
         if "email" not in kakao_account:
             email = None
         else:
             email = kakao_account["email"]
-            name = kakao_account["profile"]["nickname"]
-            avatar = kakao_account["profile"]["thumbnail_image_url"]
-            new_user = User(
-                client_id=userdata["id"],
-                email=email,
-                name=name,
-                avatar=avatar,
-                is_member=True,
-            )
-            db.add(new_user)
-            db.flush()
-            uid = new_user.id
-            db.commit()
+        name = kakao_account["profile"]["nickname"]
+        avatar = kakao_account["profile"]["thumbnail_image_url"]
+        new_user = User(
+            client_id=userdata["id"],
+            email=email,
+            name=name,
+            avatar=avatar,
+            is_member=True,
+        )
+        db.add(new_user)
+        db.flush()
+        uid = new_user.id
+        db.commit()
     else:
         uid = db_user.id
         email = db_user.email

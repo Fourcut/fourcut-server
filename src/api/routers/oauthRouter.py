@@ -13,11 +13,6 @@ from ...services.userService import read_user_by_clientid
 
 router = APIRouter()  # /oauth
 
-load_dotenv()
-
-KAKAO_RESTAPI_KEY = os.environ.get("KAKAO_RESTAPI_KEY")
-REDIRECT_URI = os.environ.get("REDIRECT_URI")
-
 
 @router.post("/kakao")
 async def kakaoAuth(
