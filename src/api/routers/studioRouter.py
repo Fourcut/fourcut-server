@@ -5,17 +5,17 @@ from sqlalchemy.orm import Session
 
 from ...controllers import studioController
 from ...dependency.dbSession import get_db
-from ...schemas import studioSchema
+from ...schemas.studioSchema import StudioBase
 
 router = APIRouter()  # /studio
 
 
-@router.get("/{studio_id}", response_model=studioSchema.StudioBase)
+@router.get("/{studio_id}", response_model=StudioBase)
 def read_studio_by_id(studio_id: int, db: Session = Depends(get_db)):
     return studioController.read_studio_by_id(db=db, studio_id=studio_id)
 
 
-@router.get("/", response_model=List[studioSchema.StudioBase])
+@router.get("/", response_model=List[StudioBase])
 def read_studio_by_query(
     latitude_start: float | None = Query(default=None),
     latitude_end: float | None = Query(default=None),

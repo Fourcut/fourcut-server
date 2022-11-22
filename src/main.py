@@ -7,7 +7,10 @@ from .db.database import Base, engine
 Base.metadata.create_all(engine)
 
 
-app = FastAPI()  # instance
+app = FastAPI(
+    title="nemo API v1",
+    version="0.0.1",
+)  # instance
 
 app.include_router(api_router)
 

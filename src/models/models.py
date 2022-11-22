@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String
+from sqlalchemy import Boolean, Column, Date, ForeignKey, Integer, String
 from sqlalchemy.orm import relationship
 
 from ..db.database import Base
@@ -68,6 +68,7 @@ class History(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(50))  # 추가
     studio_id = Column(Integer, ForeignKey("studio.id"))
+    history_date = Column(Date)
 
     studio = relationship(
         "Studio",
@@ -82,9 +83,10 @@ class History(Base):
         back_populates="history",
     )
 
-    def __init__(self, title, studio_id):
+    def __init__(self, studio_id, title, history_date):
         self.title = title
         self.studio_id = studio_id
+        self.history_date = history_date
 
 
 class UserHistory(Base):
