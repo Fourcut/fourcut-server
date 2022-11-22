@@ -36,3 +36,8 @@ async def create_history(
         member_ids=member_ids,
         db=db,
     )
+
+
+@router.get("/{history_id}")
+def read_history_by_historyID(history_id: int, db: Session = Depends(get_db)):
+    return historyController.read_history_by_historyID(db=db, history_id=history_id)

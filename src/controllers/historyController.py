@@ -8,7 +8,13 @@ from sqlalchemy.orm import Session
 from ..dependency.s3Auth import s3_auth
 from ..models.models import File, History, User, UserHistory
 from ..s3.s3Upload import upload_file_to_bucket
-from ..services import historyService, userHistoryService, userService
+from ..services import (
+    fileService,
+    historyService,
+    studioService,
+    userHistoryService,
+    userService,
+)
 
 
 # 특정 사진관에서의 현재 유저의 히스토리 read
@@ -33,7 +39,6 @@ def read_history_by_studioID(db: Session, studio_id: int):
     result = []
     for history, user_history, file in triple_join_results:
         data = {}
-        print("+++++ " + str(history.id) + " +++++")
         data["history"] = history
         data["files"] = []
         data["files"].append(file)
@@ -137,3 +142,49 @@ def create_history(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail="File could not be uploaded",
             )
+
+
+def read_history_by_historyID(history_id: int, db: Session):
+
+    # 해당 유저에 대한 인증 필요
+    # TODO
+    user_id = 1  # 임시 설정
+    #### 수정필요
+
+    try:
+        userHistoryObj = (
+            db.query(UserHistory).filter(UserHistory.history_id == history_id).first()
+        )
+        if userHistoryObj.user_id != user_id:
+            return JSONResponse(
+                status_code=status.HTTP_400_BAD_REQUEST, content="유저의 히스토리가 아닙니다"
+            )
+
+        # response 할 데이터 : 사진관, 히스토리, 파일들, 유저목록
+        historyObj = historyService.read_history(db=db, history_id=history_id)
+
+        studioObj = studioService.get_studio_by_id(db, historyObj.studio_id)
+        fileObj = db.query(File).filter(File.history_id == history_id).all()
+
+        memberObjs = (
+            db.query(UserHistory, User)
+            .join(User, UserHistory.user_id == User.id)
+            .filter(UserHistory.history_id == history_id)
+            .all()
+        )
+
+        members = []
+        for uh, userObj in memberObjs:
+            members.append(userObj)
+
+        return {
+            "history": historyObj,
+            "studio": studioObj,
+            "files": fileObj,
+            "members": members,
+        }
+
+    except:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST, content="잘못된 요청입니다"
+        )
