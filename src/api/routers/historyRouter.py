@@ -67,3 +67,13 @@ async def read_history_by_historyID(
     return await historyController.read_history_by_historyID(
         db=db, history_id=history_id, Authorization=Authorization
     )
+
+
+@router.get("/hashed/{hashed_history_id}")
+def read_history_by_hashedID(
+    hashed_history_id: str,
+    db: Session = Depends(get_db),
+):
+    return historyController.read_history_by_hashedID(
+        db=db, hashed_history_id=hashed_history_id
+    )

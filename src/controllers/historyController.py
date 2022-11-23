@@ -90,9 +90,6 @@ async def create_history(
     cur_user = await oauthController.get_current_user(
         db=db, token=Authorization.credentials
     )
-    print("++++++++", cur_user)
-    print("\n\n")
-
     user_id = cur_user.id
     ###############
 
@@ -147,6 +144,7 @@ async def create_history(
                 return {
                     "content": "Object has been uploaded to bucket successfully",
                     "created_history_id": historyObj.id,
+                    "hashed_history_id": historyObj.hashed_history_id,
                 }
             else:
                 raise HTTPException(
@@ -194,6 +192,45 @@ async def read_history_by_historyID(
             db.query(UserHistory, User)
             .join(User, UserHistory.user_id == User.id)
             .filter(UserHistory.history_id == history_id)
+            .all()
+        )
+
+        members = []
+        for uh, userObj in memberObjs:
+            members.append(userObj)
+
+        return {
+            "history": historyObj,
+            "studio": studioObj,
+            "files": fileObj,
+            "members": members,
+        }
+
+    except:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST, content="잘못된 요청입니다"
+        )
+
+
+def read_history_by_hashedID(hashed_history_id: str, db: Session):
+
+    try:
+        # response 할 데이터 : 사진관, 히스토리, 파일들, 유저목록
+        historyObj = (
+            db.query(History)
+            .filter(History.hashed_history_id == hashed_history_id)
+            .one()
+        )
+
+        print(historyObj.__dict__)
+
+        studioObj = studioService.read_studio_by_id(db, historyObj.studio_id)
+        fileObj = db.query(File).filter(File.history_id == historyObj.id).all()
+
+        memberObjs = (
+            db.query(UserHistory, User)
+            .join(User, UserHistory.user_id == User.id)
+            .filter(UserHistory.history_id == historyObj.id)
             .all()
         )
 
