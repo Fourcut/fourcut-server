@@ -1,7 +1,7 @@
 import os
 from datetime import date, datetime
 
-from fastapi import File, HTTPException, UploadFile, status, Response
+from fastapi import File, HTTPException, Response, UploadFile, status
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 
@@ -125,17 +125,23 @@ def create_history(
                 object_name=object_name,
             )
 
-            file_url = f"https://{bucket}.s3.ap-northeast-2.amazonaws.com/{folder}/{object_name}"
+            if upload_obj is True:
+                file_url = f"https://{bucket}.s3.ap-northeast-2.amazonaws.com/{folder}/{object_name}"
 
-            new_file = File(history_id=historyObj_id, url=file_url)
-            historyObj.files = [new_file]
+                new_file = File(history_id=historyObj_id, url=file_url)
+                historyObj.files = [new_file]
 
-            db.commit()
+                db.commit()
 
-            return {
-                "content": "Object has been uploaded to bucket successfully",
-                "created_history_id": historyObj.id,
-            }
+                return {
+                    "content": "Object has been uploaded to bucket successfully",
+                    "created_history_id": historyObj.id,
+                }
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="File could not be uploaded",
+                )
 
         except:
             raise HTTPException(

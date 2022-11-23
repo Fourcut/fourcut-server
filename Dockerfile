@@ -7,6 +7,8 @@ COPY ./requirements.txt /code/requirements.txt
 
 COPY ./gunicorn.conf.py /code/gunicorn.conf.py
 
+COPY ./src /code/src
+
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 RUN mkdir log
