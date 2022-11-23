@@ -1,10 +1,12 @@
 from typing import List
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Header, Query, Request
 from sqlalchemy.orm import Session
 
 from ...controllers import studioController
+from ...controllers.oauthController import get_current_user
 from ...dependency.dbSession import get_db
+from ...models.models import User
 from ...schemas.studioSchema import StudioBase
 
 router = APIRouter()  # /studio
@@ -16,7 +18,7 @@ def read_studio_by_id(studio_id: int, db: Session = Depends(get_db)):
 
 
 @router.get("/", response_model=List[StudioBase])
-def read_studio_by_query(
+async def read_studio_by_query(
     latitude_start: float | None = Query(default=None),
     latitude_end: float | None = Query(default=None),
     longitude_start: float | None = Query(default=None),

@@ -71,6 +71,7 @@ class History(Base):
     title = Column(String(50))  # 추가
     studio_id = Column(Integer, ForeignKey("studio.id"))
     history_date = Column(Date)
+    hashed_history_id = Column(String(200))
 
     studio = relationship(
         "Studio",
@@ -85,10 +86,11 @@ class History(Base):
         back_populates="history",
     )
 
-    def __init__(self, studio_id, title, history_date):
+    def __init__(self, studio_id, title, history_date, hashed_history_id):
         self.title = title
         self.studio_id = studio_id
         self.history_date = history_date
+        self.hashed_history_id = hashed_history_id
 
 
 class UserHistory(Base):

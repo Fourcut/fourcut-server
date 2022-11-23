@@ -1,6 +1,18 @@
 from datetime import date
 
-from fastapi import APIRouter, Body, Depends, File, Form, Query, UploadFile
+from fastapi import (
+    APIRouter,
+    Body,
+    Depends,
+    File,
+    Form,
+    Header,
+    HTTPException,
+    Query,
+    UploadFile,
+    status,
+)
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from ...controllers import historyController
@@ -8,6 +20,7 @@ from ...dependency.dbSession import get_db
 from ...schemas.historySchema import HistoryCreate
 
 router = APIRouter()  # /history
+auth_scheme = HTTPBearer()
 
 
 @router.get("/")
@@ -27,17 +40,30 @@ async def create_history(
         default=None
     ),  # member_id 는 쿼리로! (fastapi 에서 form 을 보낼 때는 body 에 list 를 못 담음)
     db: Session = Depends(get_db),
+    Authorization: HTTPAuthorizationCredentials = Depends(auth_scheme),
 ):
-    return historyController.create_history(
-        studio_id=studio_id,
-        title=title,
-        history_date=history_date,
-        fileObj=fileObj,
-        member_ids=member_ids,
-        db=db,
-    )
+    if Authorization:
+        return await historyController.create_history(
+            studio_id=studio_id,
+            title=title,
+            history_date=history_date,
+            fileObj=fileObj,
+            member_ids=member_ids,
+            db=db,
+            Authorization=Authorization,
+        )
+    else:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="인증되지 않은 유저입니다"
+        )
 
 
 @router.get("/{history_id}")
-def read_history_by_historyID(history_id: int, db: Session = Depends(get_db)):
-    return historyController.read_history_by_historyID(db=db, history_id=history_id)
+async def read_history_by_historyID(
+    history_id: int,
+    db: Session = Depends(get_db),
+    Authorization: HTTPAuthorizationCredentials = Depends(auth_scheme),
+):
+    return await historyController.read_history_by_historyID(
+        db=db, history_id=history_id, Authorization=Authorization
+    )

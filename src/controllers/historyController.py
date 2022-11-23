@@ -1,8 +1,10 @@
 import os
+import uuid
 from datetime import date, datetime
 
 from fastapi import File, HTTPException, Response, UploadFile, status
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 
 from ..dependency.s3Auth import s3_auth
@@ -15,6 +17,7 @@ from ..services import (
     userHistoryService,
     userService,
 )
+from . import oauthController
 
 
 # 특정 사진관에서의 현재 유저의 히스토리 read
@@ -59,7 +62,7 @@ def read_history_by_studioID(db: Session, studio_id: int):
 
 
 # 특정 사진관에서 현재 유저가 히스토리 생성
-def create_history(
+async def create_history(
     *,
     studio_id: int,
     title: str,
@@ -67,11 +70,13 @@ def create_history(
     fileObj: UploadFile | None = None,
     member_ids: list[int] | None = None,
     db: Session,
+    Authorization: HTTPAuthorizationCredentials,
 ):
     # history 생성 <= studio_id, title, history_date 집어넣기
     if history_date is None:
         history_date = date.today()
-    historyObj = History(studio_id, title, history_date)
+    hashed_history_id = uuid.uuid4()
+    historyObj = History(studio_id, title, history_date, hashed_history_id)
 
     db.add(historyObj)
     db.flush()
@@ -81,9 +86,15 @@ def create_history(
 
     # members 단위로 user_history 객체생성해서 user_histories 넣어주기
 
-    ######## TODO #########
-    user_id = 1  ###### user_id 임시설정!! 나중에 지우기
-    ######################
+    ##### 유저 토큰인증 ######
+    cur_user = await oauthController.get_current_user(
+        db=db, token=Authorization.credentials
+    )
+    print("++++++++", cur_user)
+    print("\n\n")
+
+    user_id = cur_user.id
+    ###############
 
     userHistoryObj = UserHistory(user_id, historyObj_id)
     historyObj.user_histories = [userHistoryObj]
@@ -150,13 +161,20 @@ def create_history(
             )
 
 
-def read_history_by_historyID(history_id: int, db: Session):
+async def read_history_by_historyID(
+    history_id: int,
+    db: Session,
+    Authorization: HTTPAuthorizationCredentials,
+):
 
-    # 해당 유저에 대한 인증 필요
-    # TODO
-    user_id = 1  # 임시 설정
-    #### 수정필요
+    ##### 유저 토큰인증 ######
+    cur_user = await oauthController.get_current_user(
+        db=db, token=Authorization.credentials
+    )
 
+    user_id = cur_user.id
+    print("+++++++", user_id)
+    ###############
     try:
         userHistoryObj = (
             db.query(UserHistory).filter(UserHistory.history_id == history_id).first()

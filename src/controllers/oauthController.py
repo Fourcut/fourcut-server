@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 import jwt
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from pydantic import BaseModel
@@ -19,6 +19,8 @@ load_dotenv()
 SECRET_KEY = os.environ.get("SECRET_KEY")
 ALGORITHM = os.environ.get("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES")
+
+auth_scheme = HTTPBearer()
 
 
 def create_access_token(db: Session, userdata: dict):
@@ -58,3 +60,22 @@ def create_access_token(db: Session, userdata: dict):
     encoded_jwt = jwt.encode(token, SECRET_KEY, algorithm=ALGORITHM)
 
     return encoded_jwt
+
+
+async def get_current_user(db: Session, token: str):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        if user_id is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = userService.read_user_by_id(db, user_id)
+    if user is None:
+        raise credentials_exception
+    return user
