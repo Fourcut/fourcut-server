@@ -1,3 +1,4 @@
+import logging
 import os
 import uuid
 from datetime import date, datetime
@@ -34,6 +35,8 @@ async def read_my_history_by_studioID(
         db=db, token=Authorization.credentials
     )
 
+    logging.info(cur_user)
+
     user_id = cur_user.id
     user = userService.read_user_by_id(db, user_id)
 
@@ -62,8 +65,6 @@ async def read_my_history_by_studioID(
 
         for userhistory in user_histories_by_history_id:
             data["members"].append(userhistory.user)
-
-        print(data["history"].__dict__)
 
         result.append(data)
 
