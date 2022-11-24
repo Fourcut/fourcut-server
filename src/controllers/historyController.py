@@ -4,7 +4,7 @@ from datetime import date, datetime
 
 from fastapi import File, HTTPException, Response, UploadFile, status
 from fastapi.responses import JSONResponse
-from fastapi.security import HTTPAuthorizationCredentials
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
 
 from ..dependency.s3Auth import s3_auth
@@ -19,14 +19,23 @@ from ..services import (
 )
 from . import oauthController
 
+auth_scheme = HTTPBearer()
+
 
 # 특정 사진관에서의 현재 유저의 히스토리 read
-def read_history_by_studioID(db: Session, studio_id: int):
+async def read_my_history_by_studioID(
+    db: Session,
+    studio_id: int,
+    Authorization: HTTPAuthorizationCredentials,
+):
 
-    ### 유저 임시 설정해놨음
-    user_id = 1
+    ##### 유저 토큰인증 ######
+    cur_user = await oauthController.get_current_user(
+        db=db, token=Authorization.credentials
+    )
+
+    user_id = cur_user.id
     user = userService.read_user_by_id(db, user_id)
-    #######
 
     triple_join_results = (
         db.query(History, UserHistory, File)
@@ -171,8 +180,6 @@ async def read_history_by_historyID(
     )
 
     user_id = cur_user.id
-    print("+++++++", user_id)
-    ###############
     try:
         userHistoryObj = (
             db.query(UserHistory).filter(UserHistory.history_id == history_id).first()
@@ -249,3 +256,43 @@ def read_history_by_hashedID(hashed_history_id: str, db: Session):
         return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST, content="잘못된 요청입니다"
         )
+
+
+async def read_my_all_histories(
+    db: Session, Authorization: HTTPAuthorizationCredentials
+):
+    if Authorization:
+        cur_user = await oauthController.get_current_user(
+            db=db, token=Authorization.credentials
+        )
+
+        triple_join_results = (
+            db.query(History, UserHistory, File)
+            .join(UserHistory, History.id == UserHistory.history_id)
+            .join(File, History.id == File.history_id)
+            .filter(UserHistory.user_id == cur_user.id)
+            .all()
+        )
+
+        result = []
+        for history, user_history, file in triple_join_results:
+            data = {}
+            data["history"] = history
+            data["files"] = []
+            data["files"].append(file)
+
+            data["members"] = []
+            user_histories_by_history_id = (
+                userHistoryService.read_user_history_by_history_id(db, history.id)
+            )
+
+            for userhistory in user_histories_by_history_id:
+                data["members"].append(userhistory.user)
+
+            print(data["history"].__dict__)
+
+            result.append(data)
+
+        return result
+    else:
+        return False

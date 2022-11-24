@@ -24,8 +24,24 @@ auth_scheme = HTTPBearer()
 
 
 @router.get("/")
-def read_history_by_studioID(studio_id: int, db: Session = Depends(get_db)):
-    return historyController.read_history_by_studioID(db=db, studio_id=studio_id)
+async def read_my_history_by_studioID(
+    studio_id: int,
+    db: Session = Depends(get_db),
+    Authorization: HTTPAuthorizationCredentials = Depends(auth_scheme),
+):
+    return await historyController.read_my_history_by_studioID(
+        db=db, studio_id=studio_id, Authorization=Authorization
+    )
+
+
+@router.get("/all")
+async def read_my_all_history(
+    db: Session = Depends(get_db),
+    Authorization: HTTPAuthorizationCredentials = Depends(auth_scheme),
+):
+    return await historyController.read_my_all_histories(
+        db=db, Authorization=Authorization
+    )
 
 
 # request 가 multipart-form 으로 넘어오기 때문에 pydantic schema 로 validation 불가
